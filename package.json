@@ -2,9 +2,12 @@
   "name": "24_rp_05289_leave_management_system",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "test": "echo \"No tests specified\" && exit 0",
+    "lint": "eslint . --ext .js"
   },
   "author": "",
   "license": "ISC",
