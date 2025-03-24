@@ -46,6 +46,10 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/leave-management:latest
 
+      # To make this step work:
+      # 1. Sign up for a Snyk account at https://snyk.io
+      # 2. Get your Snyk API token from Account Settings
+      # 3. Add the token as a GitHub secret named 'SNYK_TOKEN'
       - name: Run security scan
         uses: snyk/actions/docker@master
         env:
@@ -53,3 +57,4 @@ jobs:
         with:
           image: ${{ secrets.DOCKER_HUB_USERNAME }}/leave-management:latest
           args: --severity-threshold=high
+          # Optional: add --file=Dockerfile if you want to test the Dockerfile itself
