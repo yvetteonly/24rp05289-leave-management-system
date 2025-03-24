@@ -23,7 +23,7 @@ jobs:
 
       - name: Run linting
         run: |
-          npm install eslint --save-dev
+          npm install eslint @eslint/js globals --save-dev
           npx eslint . --ext .js
 
       - name: Run tests
