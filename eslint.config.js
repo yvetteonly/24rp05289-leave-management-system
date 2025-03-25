@@ -1,7 +1,7 @@
-import js from '@eslint/js';
-import globals from 'globals';
+const js = require('@eslint/js');
+const globals = require('globals');
 
-export default [
+module.exports = [
     js.configs.recommended,
     {
         files: ['**/*.js'],
@@ -17,9 +17,7 @@ export default [
             'no-console': 'warn',
             'no-unused-vars': 'warn',
             'semi': ['error', 'always'],
-            'quotes': ['error', 'single'],
-            'indent': ['error', 4],
-            'comma-dangle': ['error', 'never']
+            'quotes': ['error', 'single']
         }
     }
 ];
