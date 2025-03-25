@@ -1,0 +1,94 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_REGISTRY = 'your-registry'
+        BACKEND_IMAGE = "${DOCKER_REGISTRY}/leave-management-backend"
+        MICROSERVICE_IMAGE = "${DOCKER_REGISTRY}/leave-management-microservice"
+        KUBE_CONFIG = credentials('kubernetes-config')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'npm run test'
+            }
+        }
+
+        stage('Lint Code') {
+            steps {
+                sh 'npm run lint'
+            }
+        }
+
+        stage('Build Docker Images') {
+            parallel {
+                stage('Build Backend') {
+                    steps {
+                        script {
+                            docker.build("${BACKEND_IMAGE}:${BUILD_NUMBER}", '-f Dockerfile .')
+                        }
+                    }
+                }
+                stage('Build Microservice') {
+                    steps {
+                        script {
+                            docker.build("${MICROSERVICE_IMAGE}:${BUILD_NUMBER}", '-f Dockerfile.microservice .')
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Push Docker Images') {
+            steps {
+                script {
+                    docker.withRegistry(DOCKER_REGISTRY, 'docker-credentials') {
+                        docker.image("${BACKEND_IMAGE}:${BUILD_NUMBER}").push()
+                        docker.image("${MICROSERVICE_IMAGE}:${BUILD_NUMBER}").push()
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    withKubeConfig([credentialsId: 'kubernetes-config']) {
+                        sh """
+                            kubectl apply -f k8s/nginx-ingress.yaml
+                            kubectl apply -f k8s/backend-deployment.yaml
+                            kubectl apply -f k8s/microservice-deployment.yaml
+                            kubectl set image deployment/leave-management-backend leave-management-backend=${BACKEND_IMAGE}:${BUILD_NUMBER}
+                            kubectl set image deployment/leave-management-microservice leave-management-microservice=${MICROSERVICE_IMAGE}:${BUILD_NUMBER}
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+        always {
+            cleanWs()
+        }
+    }
+}
