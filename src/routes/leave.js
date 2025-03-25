@@ -4,6 +4,16 @@ const LeaveRequest = require('../models/LeaveRequest');
 const User = require('../models/User');
 const { auth, authManager } = require('../middleware/auth');
 
+// Get all leave requests (public endpoint for testing)
+router.get('/', async (req, res) => {
+    try {
+        const leaveRequests = await LeaveRequest.findAll();
+        res.json(leaveRequests);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Submit a leave request
 router.post('/', auth, async (req, res) => {
     try {
